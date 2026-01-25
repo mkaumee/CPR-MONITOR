@@ -129,7 +129,7 @@ The model will be available at `http://localhost:8000`
 #### Option 2: Python Server
 ```bash
 # Navigate to model directory
-cd cpr-pose-detection-model
+cd CPR-MONITOR
 
 # Start Python server
 python -m http.server 8000
@@ -242,3 +242,4 @@ Model weights are automatically downloaded from TensorFlow Hub:
 
 
 MIT License - Model for educational and research purposes.
+
