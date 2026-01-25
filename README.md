@@ -229,11 +229,11 @@ cprModel.stop();
 Model weights are automatically downloaded from TensorFlow Hub:
 - **MoveNet Lightning**: ~12MB download
 - **Cached locally** after first load
-- **No custom training data** - uses Google's pre-trained weights
 
 ## License
 
 
 MIT License - Model for educational and research purposes.
+
 
 
