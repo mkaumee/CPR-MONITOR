@@ -116,7 +116,7 @@ The entire system is designed to be as simple as possible - no installation, no 
 ```bash
 # Clone or download the model files
 git clone https://github.com/Anwar9183/CPR-MONITOR
-cd cpr-pose-detection-model
+cd CPR-MONITOR
 
 # Install dependencies (optional - for development server)
 npm install
@@ -239,5 +239,6 @@ Model weights are automatically downloaded from TensorFlow Hub:
 - **No custom training data** - uses Google's pre-trained weights
 
 ## License
+
 
 MIT License - Model for educational and research purposes.
