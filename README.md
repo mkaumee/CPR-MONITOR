@@ -189,13 +189,6 @@ The model will automatically:
 - Verify TensorFlow.js CDN accessibility
 
 
-### Local Development
-```bash
-git clone https://github.com/username/cpr-pose-detection-model
-cd cpr-pose-detection-model
-npm start
-```
-
 ### Production Deployment
 - **Netlify**: Drag and drop folder for instant deployment
 - **Vercel**: Connect GitHub repository for automatic deployment
@@ -242,4 +235,5 @@ Model weights are automatically downloaded from TensorFlow Hub:
 
 
 MIT License - Model for educational and research purposes.
+
 
