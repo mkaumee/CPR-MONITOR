@@ -1,19 +1,15 @@
-
 import time
 import grpc
 import random
-import logging
 from concurrent import futures
 
 import cpr_monitor_pb2
 import cpr_monitor_pb2_grpc
 
-
 # ==============================
 # Simple in-memory session store
 # ==============================
 sessions = {}
-
 
 def current_time_ms():
     return int(time.time() * 1000)
@@ -22,10 +18,10 @@ def current_time_ms():
 # ==============================
 # CPR Monitor Servicer
 # ==============================
-class CPRMonitorServicer(cpr_monitor_pb2_grpc.CPRMonitorServicer):
+class CPRMonitorServiceServicer(cpr_monitor_pb2_grpc.CPRMonitorServiceServicer):
 
     # ---------- Initialize ----------
-    def Initialize(self, request, context):
+    def InitializeSession(self, request, context):
         session_id = request.config.session_id
 
         sessions[session_id] = {
@@ -38,47 +34,41 @@ class CPRMonitorServicer(cpr_monitor_pb2_grpc.CPRMonitorServicer):
         print(f"Session initialized: {session_id}")
 
         return cpr_monitor_pb2.InitializeResponse(
-            success=True,
-            message="Session initialized",
+            status=cpr_monitor_pb2.Status(success=True, message="Session initialized"),
             session_id=session_id,
         )
 
     # ---------- Start Detection ----------
     def StartDetection(self, request, context):
         session_id = request.session_id
-
         if session_id not in sessions:
             context.abort(grpc.StatusCode.NOT_FOUND, "Session not found")
 
         sessions[session_id]["start_time"] = current_time_ms()
 
         return cpr_monitor_pb2.StartDetectionResponse(
-            success=True,
-            message="Detection started",
+            status=cpr_monitor_pb2.Status(success=True, message="Detection started"),
             start_time_ms=current_time_ms(),
         )
 
     # ---------- Stop Detection ----------
     def StopDetection(self, request, context):
         session_id = request.session_id
-
         if session_id not in sessions:
             context.abort(grpc.StatusCode.NOT_FOUND, "Session not found")
 
         s = sessions[session_id]
         duration = current_time_ms() - s["start_time"]
-
         metrics = self._build_metrics(session_id, duration)
 
         return cpr_monitor_pb2.StopDetectionResponse(
-            success=True,
+            status=cpr_monitor_pb2.Status(success=True, message="Detection stopped"),
             final_metrics=metrics,
         )
 
     # ---------- Process Camera Frame ----------
     def ProcessFrame(self, request, context):
         session_id = request.session_id
-
         if session_id not in sessions:
             context.abort(grpc.StatusCode.NOT_FOUND, "Session not found")
 
@@ -116,7 +106,6 @@ class CPRMonitorServicer(cpr_monitor_pb2_grpc.CPRMonitorServicer):
     # ---------- Coaching Feedback ----------
     def GetCoachingFeedback(self, request, context):
         session_id = request.session_id
-
         if session_id not in sessions:
             context.abort(grpc.StatusCode.NOT_FOUND, "Session not found")
 
@@ -142,7 +131,6 @@ class CPRMonitorServicer(cpr_monitor_pb2_grpc.CPRMonitorServicer):
     # ---------- Helper ----------
     def _build_metrics(self, session_id, duration=None):
         s = sessions[session_id]
-
         if duration is None:
             duration = current_time_ms() - s["start_time"]
 
@@ -164,8 +152,8 @@ class CPRMonitorServicer(cpr_monitor_pb2_grpc.CPRMonitorServicer):
 # ==============================
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    cpr_monitor_pb2_grpc.add_CPRMonitorServicer_to_server(
-        CPRMonitorServicer(), server
+    cpr_monitor_pb2_grpc.add_CPRMonitorServiceServicer_to_server(
+        CPRMonitorServiceServicer(), server
     )
 
     server.add_insecure_port("[::]:50051")
