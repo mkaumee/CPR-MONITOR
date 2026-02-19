@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package cpr_monitor_service;
+
+service CprMonitorService {
+    rpc GetHealthStatus (HealthRequest) returns (HealthResponse);
+    rpc GetPatientData (PatientDataRequest) returns (PatientDataResponse);
+}
+
+message HealthRequest {
+}
+
+message HealthResponse {
+    enum Status {
+        OK = 0;
+        UNHEALTHY = 1;
+    }
+    Status status = 1;
+    string message = 2;
+}
+
+message PatientDataRequest {
+    string patient_id = 1;
+}
+
+message PatientDataResponse {
+    string patient_id = 1;
+    string name = 2;
+    int32 age = 3;
+    repeated string vitals = 4;
+}
