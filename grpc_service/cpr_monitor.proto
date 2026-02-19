@@ -1,0 +1,292 @@
+syntax = "proto3";
+
+package cpr_monitor.v1;
+
+
+/*
+CPR Pose Detection Monitor - Protocol Buffer Message Definitions
+Production-ready gRPC interface for CPR monitoring and coaching system.
+*/
+
+// ==================== Common Types ====================
+
+message Status {
+  bool success = 1;
+  string message = 2;
+}
+
+enum ModelType {
+  MODEL_TYPE_UNSPECIFIED = 0;
+  MOVENET = 1;
+  POSENET = 2;
+}
+
+enum FacingMode {
+  FACING_MODE_UNSPECIFIED = 0;
+  USER = 1;
+  ENVIRONMENT = 2;
+}
+
+// ==================== Core Data Structures ====================
+
+message Keypoint {
+  string name = 1;        // e.g. "left_wrist"
+  float x = 2;            // pixels
+  float y = 3;            // pixels
+  float score = 4;        // 0.0 - 1.0 confidence
+}
+
+message Pose {
+  repeated Keypoint keypoints = 1;
+  float overall_score = 2;
+  int64 timestamp_ms = 3;
+}
+
+message CompressionEvent {
+  int64 timestamp_ms = 1;
+  float wrist_y_pixels = 2;
+  float compression_depth_mm = 3;
+}
+
+message CPRMetrics {
+  int32 compressions_per_minute = 1;
+  int32 total_compressions = 2;
+  int64 session_duration_ms = 3;
+  float average_compression_interval_ms = 4;
+
+  bool is_rhythm_optimal = 5; // 100-120 CPM
+  int32 compressions_above_threshold = 6;
+  int32 compressions_below_threshold = 7;
+
+  int64 start_time_ms = 8;
+  int64 last_update_ms = 9;
+}
+
+message CoachingFeedback {
+  enum FeedbackType {
+    FEEDBACK_TYPE_UNSPECIFIED = 0;
+    TOO_SLOW = 1;
+    TOO_FAST = 2;
+    PERFECT = 3;
+    SPEED_UP = 4;
+    SLOW_DOWN = 5;
+    BEGIN = 6;
+  }
+
+  FeedbackType type = 1;
+  string message = 2;
+  int32 current_cpm = 3;
+  int64 timestamp_ms = 4;
+}
+
+message CameraFrame {
+  bytes frame_data = 1;      // compressed image bytes recommended
+  int32 width = 2;
+  int32 height = 3;
+  int32 frame_rate = 4;
+  int64 timestamp_ms = 5;
+  bool is_valid = 6;
+}
+
+// ==================== Configuration ====================
+
+message ModelConfig {
+  ModelType model_type = 1;
+  string model_variant = 2;
+  bool enable_smoothing = 3;
+  string model_url = 4;
+}
+
+message DetectionConfig {
+  int32 min_peak_gap_ms = 1;
+  int32 chest_drop_threshold_pixels = 2;
+  int32 cpm_window_ms = 3;
+  int32 frame_skip = 4;
+  int32 target_cpm = 5;
+  int32 feedback_cooldown_ms = 6;
+}
+
+message MetronomeConfig {
+  int32 target_bpm = 1;
+  int32 beep_frequency_hz = 2;
+  int32 beep_duration_ms = 3;
+  float beep_volume = 4; // 0.0 - 1.0
+}
+
+message CameraConfig {
+  int32 ideal_width = 1;
+  int32 ideal_height = 2;
+  int32 max_width = 3;
+  int32 max_height = 4;
+  int32 ideal_frame_rate = 5;
+  int32 max_frame_rate = 6;
+  FacingMode facing_mode = 7;
+}
+
+message SessionConfig {
+  string session_id = 1;
+  ModelConfig model_config = 2;
+  DetectionConfig detection_config = 3;
+  MetronomeConfig metronome_config = 4;
+  CameraConfig camera_config = 5;
+  int64 created_at_ms = 6;
+}
+
+// ==================== Requests / Responses ====================
+
+message InitializeRequest {
+  SessionConfig config = 1;
+}
+
+message InitializeResponse {
+  Status status = 1;
+  string session_id = 2;
+}
+
+message StartDetectionRequest {
+  string session_id = 1;
+}
+
+message StartDetectionResponse {
+  Status status = 1;
+  int64 start_time_ms = 2;
+}
+
+message StopDetectionRequest {
+  string session_id = 1;
+}
+
+message StopDetectionResponse {
+  Status status = 1;
+  CPRMetrics final_metrics = 2;
+}
+
+message ProcessFrameRequest {
+  string session_id = 1;
+  CameraFrame frame = 2;
+  bool return_visualization = 3;
+}
+
+message ProcessFrameResponse {
+  Pose detected_pose = 1;
+  repeated CompressionEvent compressions = 2;
+  CPRMetrics current_metrics = 3;
+  bytes visualization_data = 4;
+}
+
+message GetMetricsRequest {
+  string session_id = 1;
+}
+
+message StreamMetricsRequest {
+  string session_id = 1;
+  int32 update_interval_ms = 2;
+}
+
+message GetCoachingFeedbackRequest {
+  string session_id = 1;
+}
+
+message LoadModelRequest {
+  ModelConfig config = 1;
+}
+
+message LoadModelResponse {
+  Status status = 1;
+  float model_size_mb = 2;
+  int64 load_time_ms = 3;
+}
+
+message DetectPosesRequest {
+  CameraFrame frame = 1;
+  ModelConfig model_config = 2;
+}
+
+message DetectPosesResponse {
+  repeated Pose poses = 1;
+  int64 detection_time_ms = 2;
+}
+
+message StartMetronomeRequest {
+  string session_id = 1;
+  MetronomeConfig config = 2;
+}
+
+message StartMetronomeResponse {
+  Status status = 1;
+  int64 start_time_ms = 2;
+}
+
+message StopMetronomeRequest {
+  string session_id = 1;
+}
+
+message StopMetronomeResponse {
+  Status status = 1;
+}
+
+message StartCameraRequest {
+  string session_id = 1;
+  CameraConfig config = 2;
+}
+
+message StartCameraResponse {
+  Status status = 1;
+  int64 start_time_ms = 2;
+}
+
+message StopCameraRequest {
+  string session_id = 1;
+}
+
+message StopCameraResponse {
+  Status status = 1;
+}
+
+// ==================== gRPC Service ====================
+
+service CPRMonitorService {
+
+  rpc InitializeSession(InitializeRequest)
+      returns (InitializeResponse);
+
+  rpc StartDetection(StartDetectionRequest)
+      returns (StartDetectionResponse);
+
+  rpc StopDetection(StopDetectionRequest)
+      returns (StopDetectionResponse);
+
+  rpc ProcessFrame(ProcessFrameRequest)
+      returns (ProcessFrameResponse);
+
+  rpc GetMetrics(GetMetricsRequest)
+      returns (CPRMetrics);
+
+  rpc StreamMetrics(StreamMetricsRequest)
+      returns (stream CPRMetrics);
+
+  rpc GetCoachingFeedback(GetCoachingFeedbackRequest)
+      returns (CoachingFeedback);
+
+  rpc LoadModel(LoadModelRequest)
+      returns (LoadModelResponse);
+
+  rpc DetectPoses(DetectPosesRequest)
+      returns (DetectPosesResponse);
+
+  rpc StartMetronome(StartMetronomeRequest)
+      returns (StartMetronomeResponse);
+
+  rpc StopMetronome(StopMetronomeRequest)
+      returns (StopMetronomeResponse);
+
+  rpc StartCamera(StartCameraRequest)
+      returns (StartCameraResponse);
+
+  rpc StopCamera(StopCameraRequest)
+      returns (StopCameraResponse);
+
+  // Bidirectional streaming for real-time CPR monitoring
+  rpc StreamFrames(stream ProcessFrameRequest)
+      returns (stream ProcessFrameResponse);
+}
