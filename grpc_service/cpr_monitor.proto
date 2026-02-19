@@ -2,11 +2,8 @@ syntax = "proto3";
 
 package cpr_monitor.v1;
 
-
-/*
-CPR Pose Detection Monitor - Protocol Buffer Message Definitions
-Production-ready gRPC interface for CPR monitoring and coaching system.
-*/
+// CPR Pose Detection Monitor - Protocol Buffer Message Definitions
+// Production-ready gRPC interface for CPR monitoring and coaching system.
 
 // ==================== Common Types ====================
 
@@ -32,7 +29,7 @@ enum FacingMode {
 message Keypoint {
   string name = 1;        // e.g. "left_wrist"
   float x = 2;            // pixels
-  float y = 3;            // pixels
+  float y = 3;
   float score = 4;        // 0.0 - 1.0 confidence
 }
 
@@ -54,7 +51,7 @@ message CPRMetrics {
   int64 session_duration_ms = 3;
   float average_compression_interval_ms = 4;
 
-  bool is_rhythm_optimal = 5; // 100-120 CPM
+  bool is_rhythm_optimal = 5;
   int32 compressions_above_threshold = 6;
   int32 compressions_below_threshold = 7;
 
@@ -80,7 +77,7 @@ message CoachingFeedback {
 }
 
 message CameraFrame {
-  bytes frame_data = 1;      // compressed image bytes recommended
+  bytes frame_data = 1;      
   int32 width = 2;
   int32 height = 3;
   int32 frame_rate = 4;
@@ -286,7 +283,6 @@ service CPRMonitorService {
   rpc StopCamera(StopCameraRequest)
       returns (StopCameraResponse);
 
-  // Bidirectional streaming for real-time CPR monitoring
   rpc StreamFrames(stream ProcessFrameRequest)
       returns (stream ProcessFrameResponse);
 }
