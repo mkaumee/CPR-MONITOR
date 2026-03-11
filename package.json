@@ -29,11 +29,14 @@
     "features": [
       "live-compression-counting",
       "cpm-rate-display",
-      "visual-guidance-overlays", 
+      "visual-guidance-overlays",
       "compression-detection-indicators"
     ]
   },
-  "dependencies": {},
+  "dependencies": {
+    "@grpc/grpc-js": "^1.14.3",
+    "@grpc/proto-loader": "^0.8.0"
+  },
   "devDependencies": {
     "serve": "^14.2.1"
   },
